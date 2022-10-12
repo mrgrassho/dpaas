@@ -35,4 +35,3 @@ DIAPER_SIZES = {
         "xxg": {"min": 13, "max": None},
     },
 }
-

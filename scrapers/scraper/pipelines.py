@@ -14,7 +14,6 @@ from scrapy.exceptions import DropItem
 from .settings import MONGO_DATABASE, MONGO_URI
 
 from .constants import DIAPER_SIZES, DIAPERS_REGEX
-import logging
 
 
 REPLACEMENTS = {
@@ -27,8 +26,8 @@ REPLACEMENTS = {
 
 logger = logging.getLogger(__name__)
 
-class DiaperPipeline:
 
+class DiaperPipeline:
     def _clean_description(self, description):
         description = description.lower()
         for value, expressions in REPLACEMENTS.items():
@@ -57,19 +56,19 @@ class DiaperPipeline:
             brand = match.group("brand")
             size = match.group("size")
             units = int(match.group("units"))
-            adapter['description'] = description
-            adapter['brand'] = brand
-            adapter['size'] = size
-            adapter['target_kg'] = DIAPER_SIZES.get(brand, {}).get(size)
-            adapter['units'] = units
-            adapter['unit_price'] = round(price / units, 2) if units else None
+            adapter["description"] = description
+            adapter["brand"] = brand
+            adapter["size"] = size
+            adapter["target_kg"] = DIAPER_SIZES.get(brand, {}).get(size)
+            adapter["units"] = units
+            adapter["unit_price"] = round(price / units, 2) if units else None
             return item
         raise DropItem(f"Missing data in {item}")
 
 
 class MongoPipeline:
 
-    collection_name = 'scrapy_items'
+    collection_name = "scrapy_items"
 
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri
@@ -78,15 +77,14 @@ class MongoPipeline:
     @classmethod
     def from_crawler(cls, crawler):
         logger.info(f"MONGO_URI={MONGO_URI}, MONGO_DATABAS={MONGO_DATABASE}")
-        return cls(
-            mongo_uri=MONGO_URI,
-            mongo_db=MONGO_DATABASE
-        )
+        return cls(mongo_uri=MONGO_URI, mongo_db=MONGO_DATABASE)
 
     def open_spider(self, spider):
         self.client = pymongo.MongoClient(self.mongo_uri)
         self.db = self.client[self.mongo_db]
-        self.db[self.collection_name].delete_many({"website": spider.allowed_domains[0]})
+        self.db[self.collection_name].delete_many(
+            {"website": spider.allowed_domains[0]}
+        )
 
     def close_spider(self, spider):
         self.client.close()

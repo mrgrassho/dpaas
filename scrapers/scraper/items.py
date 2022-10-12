@@ -7,6 +7,8 @@ import scrapy
 
 
 class ScraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    description = scrapy.Field()
+    price = scrapy.Field()
+    url = scrapy.Field()
+    image = scrapy.Field()
+    website = scrapy.Field()
