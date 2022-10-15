@@ -1,10 +1,10 @@
 brand = "(?P<brand>huggies|pampers|babysec)"
 size = "\s(pr|rn|p|m|g|xg|xxg)*\s*(\\\/|\-)*\s*(?P<size>pr|rn|p|m|g|xg|xxg)"
 units_label_1 = "x\s*(?P<units>[0-9]+)"
-units_label2 = "\[(?P<units>[0-9]+)\s*uni.\]"
+units_label_2 = "\[(?P<units>[0-9]+)\s*uni.\]"
 DIAPERS_REGEX = [
     f".*{brand}.*{size}.*{units_label_1}",
-    f".*{brand}.*{size}.*{units_label2}",
+    f".*{brand}.*{size}.*{units_label_2}",
 ]
 
 DIAPER_SIZES = {

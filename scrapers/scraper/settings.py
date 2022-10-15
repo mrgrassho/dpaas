@@ -67,8 +67,8 @@ ROBOTSTXT_OBEY = False
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "scraper.pipelines.DiaperPipeline": 1,
-    "scraper.pipelines.MongoPipeline": 2,
+    # "scraper.pipelines.DiaperPipeline": 1,
+    # "scraper.pipelines.MongoPipeline": 2,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -98,3 +98,8 @@ MONGO_DATABASE = os.environ.get("MONGO_DATABASE")
 
 LOG_LEVEL = "DEBUG"  # to only display errors
 LOG_FORMAT = "%(levelname)s: %(message)s"
+
+
+# Tienda Nube E-commerce Settings
+
+TIENDA_NUBE_PAGE_SIZE = 12

@@ -12,3 +12,8 @@ class ScraperItem(scrapy.Item):
     url = scrapy.Field()
     image = scrapy.Field()
     website = scrapy.Field()
+    brand = scrapy.Field()
+    size = scrapy.Field()
+    target_kg = scrapy.Field()
+    units = scrapy.Field()
+    unit_price = scrapy.Field()
