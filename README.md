@@ -19,6 +19,15 @@ A continuación listamos los sitios seleccionados:
 - [Carrefour](https://www.carrefour.com.ar/mundo-bebe/panales)
 - [Mercado Libre](https://listado.mercadolibre.com.ar/panalera)
 
+TO-DO:
+- https://www.pañalesoeste.com.ar/producto/10-off-en-pampers-splashers-x-2-paquetes-iguales/
+- https://www.hipermania.com.ar/producto/promo-2-hiperpacks-panales-pampers-premium-care-talle-xxg-extra-extra-grande-x54/
+- https://www.gerlero.com.ar/bebes/panales.html
+- https://emama.com.ar/categoria-producto/panales/
+- https://drimel.com.ar/categoria/panales/bebes/page/14/
+- https://www.babylandianqn.com.ar/#!/categoria/127/pagina/0/
+- https://distribuidorajj.com.ar/product-category/panales/ninos/
+
 ## Descripción de Features
 
 ### Talles
@@ -129,7 +138,7 @@ Agregar limpieza de talles.
 - **Paginación**. Se obtiene de manera normal con un 'siguiente' al final de página.
 - **E-commerce**: -
 
-## [La pañalera escondida](https://www.lapañaleraescondida.com.ar/panales-para-bebes/)
+## [La pañalera escondida](https://www.xn--lapaaleraescondida-q0b.com.ar/panales-para-bebes/)
 
 - **Talles**. Algunos no tienen talles en la descripcion. Se obtienen de un JSON.
 - **Paginación**. El paginado es dinámico a medida que se scrollea.
@@ -230,3 +239,23 @@ Todos los talles de este e-commerce se encuentra en un tag `data-installments`
 ]
 ```
 
+### Sitios Tienda Nube:
+  - https://tienda-nube-ecommerce.com/panales/bebes
+  - https://www.xn--todoenpaales-hhb.com.ar/bebes/panales1
+  - https://www.panalesonline.com.ar/panales/bebes
+  - https://www.lapanaleraencasa.com.ar/bebe/panales
+  - https://www.tiendalys.com.ar/panales-de-bebe
+  - https://www.panaleramatlu.com.ar/panales-bebes
+  - https://www.panaleradoremi.com.ar/panales/bebes
+  - https://www.xn--lapaaleraescondida-q0b.com.ar/panales-para-bebes
+  - https://panalonce.com.ar/panales/bebes
+  - https://www.parquepanial.com.ar/panales-de-bebe
+  - https://www.anaperfumeriaonline.com.ar/panales/panales-bebe
+  - https://www.panolino.com.ar/bebes/oleos
+  - https://www.vmdecompras.com.ar/recien-nacido
+  - https://www.perfumeriasmiriam.com/bebes-y-maternidad1/panales
+  - https://www.noninoni.com.ar/panales/bebes
+  - https://www.morashop.ar/todo-para-tu-bebe/higiene-y-cuidado-del-bebe/panales
+  - https://piquilines.com.ar/rn
+  - https://www.xn--tiendamipaal-jhb.com.ar/panales
+  - https://www.panalerananita.com.ar/panales
