@@ -4,7 +4,7 @@
 A continuación listamos los sitios seleccionados:
 
 - [Pañales online](https://www.panalesonline.com.ar/panales/bebes/)
-- [Mundo Pañal](https://elmundodelpañal.com.ar/#!/categoria/33/pagina/0/)
+- [Mundo Pañal](https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/33/pagina/0/)
 - [Pañalera Delta](https://panaleradelta.com.ar/product-category/panales-de-bebes/)
 - [Todo en Pañales](https://www.todoenpa%C3%B1ales.com.ar/bebes/panales1)
 - [La pañalera en casa](https://www.lapanaleraencasa.com.ar/bebe/panales)
@@ -51,12 +51,12 @@ DIAPERS_REGEX = [
 - **Paginación**. El paginado es dinámico a medida que se scrollea.
 - **E-commerce**: Tienda Nube.
 
-## [Mundo Pañal](https://elmundodelpañal.com.ar/#!/categoria/33/pagina/0/)
+## [Mundo Pañal](https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/33/pagina/0/)
 
 - **Inicialización**. Se tiene q comenzar por obtener las primeras tres pantallas de marcas.
-  - PAMPERS - https://elmundodelpañal.com.ar/#!/categoria/33/pagina/0/
-  - HUGGIES - https://elmundodelpañal.com.ar/#!/categoria/31/pagina/0/
-  - BABYSEC - https://elmundodelpañal.com.ar/#!/categoria/41/pagina/0/
+  - PAMPERS - https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/33/pagina/0/
+  - HUGGIES - https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/31/pagina/0/
+  - BABYSEC - https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/41/pagina/0/
 - **Talles**. Algunos items no tienen talles en la descripcion. Se debe entrar manualmente item por item para obtener los talles de un dropdown en la página.
 - **Paginación**. Se obtiene de manera normal con un 'siguiente' al final de página.
 

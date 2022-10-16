@@ -53,7 +53,7 @@ ROBOTSTXT_OBEY = False
 # }
 
 SPIDER_CONTRACTS = {
-    'scraper.contracts.UrlCustomContract': 10,
+    "scraper.contracts.UrlCustomContract": 10,
 }
 
 # Enable or disable downloader middlewares

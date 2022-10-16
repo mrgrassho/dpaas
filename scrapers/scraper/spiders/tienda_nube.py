@@ -8,9 +8,7 @@ from scraper.items import ScraperItem
 
 class TiendaNubeSpider(scrapy.Spider):
     url = "https://tienda-nube-ecommerce.com/panales/bebes"
-    custom_settings = {
-        "LOG_LEVEL": "DEBUG"
-    }
+    custom_settings = {"LOG_LEVEL": "DEBUG"}
     items_xpath = "//div//script/text()"
     variants_xpath = "//div/@data-variants"
 
@@ -66,7 +64,7 @@ class TodoEnPanalesSpider(TiendaNubeSpider):
     url = "https://www.xn--todoenpaales-hhb.com.ar/bebes/panales1"
 
     def parse(self, response):
-        """ This function parses a sample response. Some contracts are mingled
+        """This function parses a sample response. Some contracts are mingled
         with this docstring.
 
         @url_custom https://www.xn--todoenpaales-hhb.com.ar/bebes/panales1/page/1/?results_only=true&limit=12 application/json
@@ -75,6 +73,7 @@ class TodoEnPanalesSpider(TiendaNubeSpider):
         @scrapes description price url image website size units
         """
         return super().parse(response)
+
 
 class PanalesOnlineSpider(TiendaNubeSpider):
     name = "panales_online"
@@ -161,6 +160,7 @@ class MorashopSpider(TiendaNubeSpider):
     allowed_domains = ["www.morashop.ar"]
     url = "https://www.morashop.ar/todo-para-tu-bebe/higiene-y-cuidado-del-bebe/panales"
 
+
 # Revisar porque muere en la pagina 2
 class PiquilinesSpider(TiendaNubeSpider):
     name = "piquilines"
@@ -178,4 +178,3 @@ class PanaleraNanitaSpider(TiendaNubeSpider):
     name = "panalera_nanita"
     allowed_domains = ["www.panalerananita.com.ar"]
     url = "https://www.panalerananita.com.ar/panales"
-
