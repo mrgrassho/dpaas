@@ -65,6 +65,16 @@ class TodoEnPanalesSpider(TiendaNubeSpider):
     allowed_domains = ["www.xn--todoenpaales-hhb.com.ar"]
     url = "https://www.xn--todoenpaales-hhb.com.ar/bebes/panales1"
 
+    def parse(self, response):
+        """ This function parses a sample response. Some contracts are mingled
+        with this docstring.
+
+        @url_custom https://www.xn--todoenpaales-hhb.com.ar/bebes/panales1/page/1/?results_only=true&limit=12 application/json
+        @returns items 1 26
+        @returns requests 0 1
+        @scrapes description price url image website size units
+        """
+        return super().parse(response)
 
 class PanalesOnlineSpider(TiendaNubeSpider):
     name = "panales_online"

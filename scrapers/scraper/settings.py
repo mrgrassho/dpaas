@@ -52,6 +52,10 @@ ROBOTSTXT_OBEY = False
 #    'scraper.middlewares.ScraperSpiderMiddleware': 543,
 # }
 
+SPIDER_CONTRACTS = {
+    'scraper.contracts.UrlCustomContract': 10,
+}
+
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 # DOWNLOADER_MIDDLEWARES = {
