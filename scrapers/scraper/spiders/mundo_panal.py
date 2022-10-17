@@ -1,15 +1,12 @@
 import scrapy
 from scraper.items import ScraperItem
 from scrapy import Request
-import logging
 
 BRAND_MAPPING = {
     "categoria%2F33": "pampers",
     "categoria%2F31": "huggies",
     "categoria%2F41": "babysec",
 }
-
-logger = logging.getLogger(__name__)
 
 
 class MundoPanalSpider(scrapy.Spider):
