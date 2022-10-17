@@ -26,8 +26,8 @@ class CotodigitalSpider(scrapy.Spider):
         """This function parses a sample response. Some contracts are mingled
         with this docstring.
 
-        @url https://panaleradelta.com.ar/product-category/panales-de-bebes/
-        @returns items 1 36
+        @url https://www.cotodigital3.com.ar/sitios/cdigi/browse/catalogo-perfumer%C3%ADa-pa%C3%B1ales-y-productos-para-incontinencia-pa%C3%B1ales-para-beb%C3%A9/_/N-fmf3uu?No=0
+        @returns items 1 48
         @returns requests 0 1
         @scrapes description price url image website
         """

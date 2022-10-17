@@ -32,14 +32,6 @@ class TravesurasonlineSpider(scrapy.Spider):
         return request
 
     def parse(self, response):
-        """This function parses a sample response. Some contracts are mingled
-        with this docstring.
-
-        @url https://panaleradelta.com.ar/product-category/panales-de-bebes/
-        @returns items 1 36
-        @returns requests 0 1
-        @scrapes description price url image website
-        """
         items = response.json().get("datos", [])
         for item in items:
             description = item.get("titulo")
