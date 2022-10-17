@@ -1,6 +1,7 @@
 import scrapy
 from scraper.items import ScraperItem
 
+
 class PanaleradeltaSpider(scrapy.Spider):
     name = "panalera_delta"
     allowed_domains = ["panaleradelta.com.ar"]
@@ -15,8 +16,10 @@ class PanaleradeltaSpider(scrapy.Spider):
         @returns requests 0 1
         @scrapes description price url image website
         """
-        for item in response.xpath('//div[contains(@class, "product-small")]'):
-            description = item.xpath(".//p[contains(@class, 'product-title')]/a/text()").get()
+        for item in response.xpath("//div[contains(@class, 'product-small')]"):
+            description = item.xpath(
+                ".//p[contains(@class, 'product-title')]/a/text()"
+            ).get()
             price = item.xpath(".//bdi/text()").get()
             url = item.xpath(".//p[contains(@class, 'product-title')]/a/@href").get()
             image = item.xpath(".//div[contains(@class, 'box-image')]//img/@src").get()
@@ -31,6 +34,6 @@ class PanaleradeltaSpider(scrapy.Spider):
                 target_kg=None,
                 units=None,
             )
-        next_page = response.xpath('//a[contains(@class, "next")]/@href').get()
+        next_page = response.xpath("//a[contains(@class, 'next')]/@href").get()
         if next_page is not None:
             yield response.follow(next_page, self.parse)

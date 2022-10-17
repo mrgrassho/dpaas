@@ -26,3 +26,6 @@ Thumbs.dB
 
 # Data
 scrapers/**/*.json
+
+# Logs
+*.log
