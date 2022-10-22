@@ -29,3 +29,6 @@ scrapers/**/*.json
 
 # Logs
 *.log
+
+# Logs
+*.zip
