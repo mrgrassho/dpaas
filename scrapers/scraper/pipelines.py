@@ -17,7 +17,7 @@ from .constants import DIAPER_SIZES, DIAPERS_REGEX
 
 
 REPLACEMENTS = {
-    "pr": [r"prematuro"],
+    "pr": [r"prematuro", r"prem"],
     "rn": [r"reci.*n nacido"],
     "huggies": [r"hugies"],
     "g": [r"grande"],
