@@ -14,6 +14,7 @@ class ScraperItem(scrapy.Item):
     website = scrapy.Field()
     brand = scrapy.Field()
     size = scrapy.Field()
-    target_kg = scrapy.Field()
+    target_kg_min = scrapy.Field()
+    target_kg_max = scrapy.Field()
     units = scrapy.Field()
     unit_price = scrapy.Field()

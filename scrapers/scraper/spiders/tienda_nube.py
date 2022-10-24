@@ -1,4 +1,5 @@
 import json
+from re import match
 import scrapy
 from scraper import settings
 import lxml.html
@@ -36,7 +37,6 @@ class TiendaNubeSpider(scrapy.Spider):
             website=self.allowed_domains[0],
             brand=None,
             size=variant.get("option0"),
-            target_kg=None,
             units=variant.get("option1"),
         )
 
@@ -86,6 +86,19 @@ class PanaleraEnCasaSpider(TiendaNubeSpider):
     allowed_domains = ["www.lapanaleraencasa.com.ar"]
     url = "https://www.lapanaleraencasa.com.ar/bebe/panales"
 
+    def item(self, common, variant):
+        value = variant.get("option0")
+        attrs = value.split("x") if value else []
+        return ScraperItem(
+            description=common.get("name"),
+            price=variant.get("price_number"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=attrs[0].strip(" ") if len(attrs) >= 1 else None,
+            units=attrs[1].strip(" ,") if len(attrs) >= 2 else None,
+        )
 
 class TiendalysSpider(TiendaNubeSpider):
     name = "tiendalys"
@@ -104,19 +117,60 @@ class PanaleraDoremiSpider(TiendaNubeSpider):
     allowed_domains = ["www.panaleradoremi.com.ar"]
     url = "https://www.panaleradoremi.com.ar/panales/bebes"
 
+    def item(self, common, variant):
+        return ScraperItem(
+            description=common.get("name"),
+            price=common.get("offers", {}).get("price"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=None,
+            units=None,
+        )
+
 
 class PanaleraEscondidaSpider(TiendaNubeSpider):
     name = "panalera_escondida"
     allowed_domains = ["www.xn--lapaaleraescondida-q0b.com.ar"]
     url = "https://www.xn--lapaaleraescondida-q0b.com.ar/panales-para-bebes"
 
+    def item(self, common, variant):
+        value = variant.get("option0")
+        attrs = value.split(" x ") if value else []
+        return ScraperItem(
+            description=common.get("name"),
+            price=variant.get("price_number"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=attrs[0] if len(attrs) >= 1 else None,
+            units=attrs[1] if len(attrs) >= 2 else None,
+        )
 
 class PanalOnceSpider(TiendaNubeSpider):
     name = "panal_once"
     allowed_domains = ["www.panalonce.com.ar"]
     url = "https://panalonce.com.ar/panales/bebes"
 
+    def item(self, common, variant):
+        value = variant.get("option0").lower()
+        attrs = value.split(" x ")
+        return ScraperItem(
+            description=common.get("name"),
+            price=variant.get("price_number"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=attrs[0] if len(attrs) >= 1 else None,
+            units=attrs[1] if len(attrs) >= 2 else None,
+        )
 
+# TODO: Los talles no se cargan via data-variants
+#       tiene pinta que es tienda nube legacy como
+#       noninoni.com.ar
 class ParquePanalSpider(TiendaNubeSpider):
     name = "parque_panal"
     allowed_domains = ["www.parquepanial.com.ar"]
@@ -134,6 +188,17 @@ class PanolinoSpider(TiendaNubeSpider):
     allowed_domains = ["www.panolino.com.ar"]
     url = "https://www.panolino.com.ar/bebes/oleos"
 
+    def item(self, common, variant):
+        return ScraperItem(
+            description=common.get("name"),
+            price=common.get("offers", {}).get("price"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=None,
+            units=None,
+        )
 
 class VMComprasSpider(TiendaNubeSpider):
     name = "vmdecompras"
@@ -147,12 +212,13 @@ class PerfumeriasMiriamSpider(TiendaNubeSpider):
     url = "https://www.perfumeriasmiriam.com/bebes-y-maternidad1/panales"
 
 
-# TODO: Armar base TiendaNubeLegacy, ya que no funciona con el scraper actual
+# TODO: Armar base TiendaNubeLegacy ya que no funciona con el
+#       scraper actual.
 #
-# class NoninoniSpider(TiendaNubeSpider):
-#     name = "noninoni"
-#     allowed_domains = ["www.noninoni.com.ar"]
-#     url = "https://www.noninoni.com.ar/panales/bebes"
+class NoninoniSpider(TiendaNubeSpider):
+    name = "noninoni"
+    allowed_domains = ["www.noninoni.com.ar"]
+    url = "https://www.noninoni.com.ar/panales/bebes"
 
 
 class MorashopSpider(TiendaNubeSpider):
@@ -160,8 +226,22 @@ class MorashopSpider(TiendaNubeSpider):
     allowed_domains = ["www.morashop.ar"]
     url = "https://www.morashop.ar/todo-para-tu-bebe/higiene-y-cuidado-del-bebe/panales"
 
+    def item(self, common, variant):
+        size = f'{variant.get("option0")} {variant.get("option1")}'
+        m = match(".*\((.*)\)", size)
+        return ScraperItem(
+            description=common.get("name"),
+            price=variant.get("price_number"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=m.group(1) if m else None,
+            units=None,
+        )
 
-# Revisar porque muere en la pagina 2
+
+# TODO: Revisar porque muere en la pagina 2
 class PiquilinesSpider(TiendaNubeSpider):
     name = "piquilines"
     allowed_domains = ["www.piquilines.com.ar"]
