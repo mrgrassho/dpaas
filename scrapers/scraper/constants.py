@@ -2,7 +2,8 @@ from enum import Enum
 
 
 brand = "(?P<brand>huggies|pampers|babysec)"
-size = "\s(pr|rn|p|m|g|xg|xxg)*\s*(\\\/|\-)*\s*(?P<size>pr|rn|p|m|g|xg|xxg)"
+size_only = "(?P<size>pr|rn|p|m|g|xg|xxg)"
+size = f"\s(pr|rn|p|m|g|xg|xxg)*\s*(\\\/|\-)*\s*{size_only}"
 units_label_1 = "x\s*(?P<units>[0-9]+)"
 units_label_2 = "\[(?P<units>[0-9]+)\s*uni\.{0,1}\]"
 units_label_3 = "\s+(?P<units>[0-9]+)\s*(u|uni|unid){1}\.{0,1}"
@@ -13,6 +14,12 @@ DIAPERS_REGEX = [
     f".*{size}.*{brand}.*{units_label_3}",
     f".*{brand}.*",
     f".*{brand}.*{units_label_1}.*{size}",
+]
+
+DIAPERS_NO_BRAND_REGEX = [
+    f"{size_only}.*{units_label_1}",
+    f"{size_only}.*{units_label_2}",
+    f"{size_only}.*{units_label_3}",
 ]
 
 class DiaperBrand(Enum):

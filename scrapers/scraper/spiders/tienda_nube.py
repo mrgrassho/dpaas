@@ -86,19 +86,6 @@ class PanaleraEnCasaSpider(TiendaNubeSpider):
     allowed_domains = ["www.lapanaleraencasa.com.ar"]
     url = "https://www.lapanaleraencasa.com.ar/bebe/panales"
 
-    def item(self, common, variant):
-        value = variant.get("option0")
-        attrs = value.split("x") if value else []
-        return ScraperItem(
-            description=common.get("name"),
-            price=variant.get("price_number"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=attrs[0].strip(" ") if len(attrs) >= 1 else None,
-            units=attrs[1].strip(" ,") if len(attrs) >= 2 else None,
-        )
 
 class TiendalysSpider(TiendaNubeSpider):
     name = "tiendalys"
@@ -154,19 +141,6 @@ class PanalOnceSpider(TiendaNubeSpider):
     allowed_domains = ["www.panalonce.com.ar"]
     url = "https://panalonce.com.ar/panales/bebes"
 
-    def item(self, common, variant):
-        value = variant.get("option0").lower()
-        attrs = value.split(" x ")
-        return ScraperItem(
-            description=common.get("name"),
-            price=variant.get("price_number"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=attrs[0] if len(attrs) >= 1 else None,
-            units=attrs[1] if len(attrs) >= 2 else None,
-        )
 
 # TODO: Los talles no se cargan via data-variants
 #       tiene pinta que es tienda nube legacy como
@@ -211,6 +185,19 @@ class PerfumeriasMiriamSpider(TiendaNubeSpider):
     allowed_domains = ["www.perfumeriasmiriam.com.ar"]
     url = "https://www.perfumeriasmiriam.com/bebes-y-maternidad1/panales"
 
+    def item(self, common, variant):
+        value = variant.get("option0")
+        attrs = value.lower().replace(" x ", " ").split(" ") if value else []
+        return ScraperItem(
+            description=common.get("name"),
+            price=variant.get("price_number"),
+            url=common.get("offers", {}).get("url"),
+            image=common.get("image"),
+            website=self.allowed_domains[0],
+            brand=None,
+            size=attrs[0] if len(attrs) >= 1 else None,
+            units=attrs[1] if len(attrs) >= 2 else None
+        )
 
 # TODO: Armar base TiendaNubeLegacy ya que no funciona con el
 #       scraper actual.

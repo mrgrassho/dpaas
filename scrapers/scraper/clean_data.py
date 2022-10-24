@@ -4,7 +4,7 @@ import json
 from typing import Dict, TypedDict, Union
 
 from .items import ScraperItem
-from .constants import DIAPER_SIZES, DIAPERS_REGEX
+from .constants import DIAPER_SIZES, DIAPERS_NO_BRAND_REGEX, DIAPERS_REGEX
 
 class CommonDiaperException(Exception):
     pass
@@ -23,13 +23,13 @@ class ReplacementDict(TypedDict):
 
 DEFAULT_REPLACEMENTS : ReplacementDict = {
     "brand": {
-        "huggies": [r"hugies", r"hug(?=\s+)"],
+        "huggies": [r"hugies", r"hug(?=\s)"],
         "pampers": [r"pamp(?=\s+)", r"^pants(?=\s+)"],
         "babysec": [r"baby sec"],
     },
     "size": {
         "pr": [r"prematuro", r"prem(?=\s+)"],
-        "rn": [r"reci.*n nacido"],
+        "rn": [r"reci.*n nacido", r"r\.n"],
         "g": [r"grande", r"gde", r"gd", r"(?<=\s)l(?=\s+)"],
         "m": [r"s\-m", r"mediano(?=\s*)", r"(?<=\s)med(?=\s+)"],
         "p": [r"peq", r"pequeño"],
@@ -71,9 +71,20 @@ class DiaperCleaner:
                 if len(match.groups()) >= 2:
                     data["size"] = match.group("size")
                 if len(match.groups()) >= 3:
-                    data["units"] = match.group("units")
+                    data["units"] = int(match.group("units"))
                 return data
         raise NotDiaperException()
+
+    def _size_and_units(self, size_units: str) -> Dict:
+        for expresion in DIAPERS_NO_BRAND_REGEX:
+            match = re.search(expresion, size_units)
+            if match:
+                data = {
+                    "size": match.group("size")
+                }
+                if len(match.groups()) >= 2:
+                    data["units"] = int(match.group("units"))
+                return data
 
     def _sanitize_float(self, item: str) -> float:
         """Given a string number formatted as currency returns a float.
@@ -165,6 +176,9 @@ class DiaperCleaner:
                 raise MissingDataException()
             extracted_info = self._extract_info(description)
             item.update(**extracted_info)
+        if not item.get("units"):
+            extracted_info = self._size_and_units(item.get("size"))
+            item.update(**extracted_info) if extracted_info else None
         target_kgs = self._get_target_kg(item)
         item.update(**target_kgs)
         item["unit_price"] = self._get_unit_price(item)
