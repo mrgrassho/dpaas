@@ -32,3 +32,6 @@ scrapers/**/*.json
 
 # Logs
 *.zip
+
+# Env
+*.env
