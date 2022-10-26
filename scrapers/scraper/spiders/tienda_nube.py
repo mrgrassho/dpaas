@@ -174,7 +174,7 @@ class PanolinoSpider(TiendaNubeSpider):
             units=None,
         )
 
-class VMComprasSpider(TiendaNubeSpider):
+class VMComprasSpider(PanolinoSpider):
     name = "vmdecompras"
     allowed_domains = ["www.vmdecompras.com.ar"]
     url = "https://www.vmdecompras.com.ar/recien-nacido"
