@@ -1,4 +1,3 @@
-from dataclasses import replace
 import re
 import json
 from typing import Dict, TypedDict, Union
@@ -13,7 +12,8 @@ class NotDiaperException(CommonDiaperException):
     pass
 
 class MissingDataException(CommonDiaperException):
-    pass
+    def __init__(self, missing_fields):
+        self.missing_fields = missing_fields
 
 
 class ReplacementDict(TypedDict):
@@ -37,6 +37,11 @@ DEFAULT_REPLACEMENTS : ReplacementDict = {
         "x": [r"extra "],
         "xxg": [r"xxxg" ],
     }
+}
+
+PROMOS_PACKS = {
+    "promo pack (?P<pack>[0-9]+)",
+    "pack x(?P<pack>[0-9]+)",
 }
 
 REPLACEMENTS_BLANCKS = {
@@ -85,6 +90,13 @@ class DiaperCleaner:
                 if len(match.groups()) >= 2:
                     data["units"] = int(match.group("units"))
                 return data
+
+    def _get_pack(self, description: str) -> int:
+        for expresion in PROMOS_PACKS:
+            match = re.search(expresion, description)
+            if match:
+                return int(match.group("pack"))
+        return 1
 
     def _sanitize_float(self, item: str) -> float:
         """Given a string number formatted as currency returns a float.
@@ -164,21 +176,29 @@ class DiaperCleaner:
         price = item.get("price")
         return round(price / int(units), 2) if all((units, price)) else None
 
+    def _check_keys(self, item, keys):
+        _keys = []
+        for key in keys:
+            val = item.get(key)
+            if val is None or val == "":
+                _keys.append(key)
+        if _keys:
+            raise MissingDataException(_keys)
+
     def enhance(self, item: ScraperItem) -> ScraperItem:
         item = self._sanitize_fields(item)
         brand = item.get("brand")
         size = item.get("size")
         units = item.get("units")
+        description = item.get("description") or ""
         if not all((brand, size, units)):
-            description = item.get("description")
-            price = item.get("price")
-            if not all((description, price)):
-                raise MissingDataException()
             extracted_info = self._extract_info(description)
             item.update(**extracted_info)
-        if not item.get("units"):
+        if not item.get("units") and item.get("size"):
             extracted_info = self._size_and_units(item.get("size"))
             item.update(**extracted_info) if extracted_info else None
+        self._check_keys(item, ["brand", "price", "size", "units"])
+        item["units"] *= self._get_pack(description)
         target_kgs = self._get_target_kg(item)
         item.update(**target_kgs)
         item["unit_price"] = self._get_unit_price(item)
