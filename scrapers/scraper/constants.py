@@ -67,7 +67,7 @@ DIAPER_SIZES = {
         "xxg": {"min": 13, "max": None},
     },
     DiaperBrand.ESTRELLA.value: {
-        "p": {"min": None, "max": 7.5},
+        "p": {"min": 5, "max": 7.5},
         "m": {"min": 6, "max": 9.5},
         "g": {"min": 9, "max": 12},
         "xg": {"min": 12, "max": 15},

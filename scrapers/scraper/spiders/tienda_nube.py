@@ -239,9 +239,3 @@ class TiendaMipanalSpider(TiendaNubeSpider):
     name = "tienda_mipanal"
     allowed_domains = ["www.xn--tiendamipaal-jhb.com.ar"]
     url = "https://www.xn--tiendamipaal-jhb.com.ar/panales"
-
-
-class PanaleraNanitaSpider(TiendaNubeSpider):
-    name = "panalera_nanita"
-    allowed_domains = ["www.panalerananita.com.ar"]
-    url = "https://www.panalerananita.com.ar/panales"

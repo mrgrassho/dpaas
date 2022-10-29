@@ -1,4 +1,5 @@
 import argparse
+import io
 import json
 import logging
 from os import environ
@@ -30,7 +31,21 @@ except Exception as e:
 DIR_DATA = environ.get("DIR_DATA")
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+
+CSV_KEYS = [
+  "description",
+  "price",
+  "url",
+  "image",
+  "website",
+  "brand",
+  "size",
+  "target_kg_min",
+  "target_kg_max",
+  "units",
+  "unit_price",
+]
 
 class CliDiaperCleaner(object):
 
@@ -62,16 +77,21 @@ class CliDiaperCleaner(object):
         with open(fout, 'w') as fp:
             json.dump(result, fp, indent=2)
         if self.fall and result:
-            with open(self.fall, 'a') as fp:
-                # fp.write(",".join([ str(r) for r in result[0].keys()]) + "\n")
+            with open(self.fall, 'a+') as fp:
+                fp.seek(0, 0)
+                content = fp.readline()
+                if not content:
+                    fp.write(",".join([ str(r) for r in result[0].keys()]) + "\n")
+                fp.seek(0, io.SEEK_END)
                 for r in result:
-                    fp.write(",".join([ f'"{str(r)}"' for r in r.values()]) + "\n")
+                    fp.write(",".join([ f'"{str(r.get(key, ""))}"' for key in CSV_KEYS]) + "\n")
         results = len(items)
         ignored = len(items) - len(result)
         logger.info(f" {bcolors.OKBLUE}[+]{bcolors.ENDC} Out {fout}")
         logger.info(f" {bcolors.OKBLUE}[+]{bcolors.ENDC} Summary:")
-        logger.info(f" {bcolors.OKBLUE}[+]{bcolors.ENDC} \t - total: {len(items)}")
         logger.info(f" {bcolors.OKBLUE}[+]{bcolors.ENDC} \t - ignored: {ignored}")
+        logger.info(f" {bcolors.OKBLUE}[+]{bcolors.ENDC} \t - results: {len(result)}")
+        logger.info(f" {bcolors.OKBLUE}[+]{bcolors.ENDC} \t - total: {len(items)} (results + ignored)")
         return results, ignored, not_diaper, missing_data
 
     def process(self):

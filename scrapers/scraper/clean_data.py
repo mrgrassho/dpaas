@@ -32,7 +32,7 @@ DEFAULT_REPLACEMENTS : ReplacementDict = {
         "rn": [r"reci.*n nacido", r"r\.n"],
         "g": [r"grande", r"gde", r"gd", r"(?<=\s)l(?=\s+)"],
         "m": [r"s\-m", r"mediano(?=\s*)", r"(?<=\s)med(?=\s+)"],
-        "p": [r"peq", r"pequeño"],
+        "p": [r"pequeño", r"peq"],
         "xg": [r"xl"],
         "x": [r"extra "],
         "xxg": [r"xxxg" ],

@@ -20,13 +20,13 @@ A continuación listamos los sitios seleccionados:
 - [Mercado Libre](https://listado.mercadolibre.com.ar/panalera)
 
 TO-DO:
-- https://www.pañalesoeste.com.ar/producto/10-off-en-pampers-splashers-x-2-paquetes-iguales/
-- https://www.hipermania.com.ar/producto/promo-2-hiperpacks-panales-pampers-premium-care-talle-xxg-extra-extra-grande-x54/
-- https://www.gerlero.com.ar/bebes/panales.html
-- https://emama.com.ar/categoria-producto/panales/
-- https://drimel.com.ar/categoria/panales/bebes/page/14/
-- https://www.babylandianqn.com.ar/#!/categoria/127/pagina/0/
-- https://distribuidorajj.com.ar/product-category/panales/ninos/
+- https://drimel.com.ar/categoria/panales/bebes/page/14/ - 157
+- https://www.hipermania.com.ar/producto/promo-2-hiperpacks-panales-pampers-premium-care-talle-xxg-extra-extra-grande-x54/ - 119
+- https://emama.com.ar/categoria-producto/panales/ - 80
+- https://www.pañalesoeste.com.ar/producto/10-off-en-pampers-splashers-x-2-paquetes-iguales/ - 48
+- https://www.babylandianqn.com.ar/#!/categoria/127/pagina/0/ - 33
+- https://www.gerlero.com.ar/bebes/panales.html - 10
+- https://distribuidorajj.com.ar/product-category/panales/ninos/ -  NO TIENE NINGUN ITEM EN STOCK
 
 ## Descripción de Features
 
@@ -258,4 +258,3 @@ Todos los talles de este e-commerce se encuentra en un tag `data-installments`
   - https://www.morashop.ar/todo-para-tu-bebe/higiene-y-cuidado-del-bebe/panales
   - https://piquilines.com.ar/rn
   - https://www.xn--tiendamipaal-jhb.com.ar/panales
-  - https://www.panalerananita.com.ar/panales
