@@ -25,7 +25,7 @@ test-output.*
 Thumbs.dB
 
 # Data
-scrapers/**/*.json
+scrapers/scraper/data*/*.json
 
 # Logs
 *.log

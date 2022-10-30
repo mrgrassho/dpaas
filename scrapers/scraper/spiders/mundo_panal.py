@@ -2,6 +2,8 @@ import scrapy
 from scraper.items import ScraperItem
 from scrapy import Request
 
+from scraper.constants import CABA
+
 BRAND_MAPPING = {
     "categoria%2F33": "pampers",
     "categoria%2F31": "huggies",
@@ -18,6 +20,7 @@ class MundoPanalSpider(scrapy.Spider):
         "huggies": "https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/31/pagina/{}/",
         "babysec": "https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/41/pagina/{}/",
     }
+    shipments = CABA
 
     def __init__(self, page_size=None, *args, **kwargs):
         super(MundoPanalSpider, self).__init__(*args, **kwargs)

@@ -1,11 +1,13 @@
 import scrapy
 from scraper.items import ScraperItem
+from scrapers.scraper.constants import BAHIA_BLANCA
 
 
 class TravesurasonlineSpider(scrapy.Spider):
     name = 'travesurasonline'
     allowed_domains = ['travesurasonline.sed.com.ar']
     start_urls = ['https://travesurasonline.sed.com.ar/catalogo;r=pa%C3%B1al%20bebe;s=otros;clear=true']
+    shipments = BAHIA_BLANCA
 
     def __init__(self, *args, **kwargs):
         super(TravesurasonlineSpider, self).__init__(*args, **kwargs)

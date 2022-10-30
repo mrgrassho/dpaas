@@ -71,8 +71,9 @@ SPIDER_CONTRACTS = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    # "scraper.pipelines.DiaperPipeline": 1,
-    # "scraper.pipelines.MongoPipeline": 2,
+    "scraper.pipelines.DiaperPipeline": 100,
+    "scraper.pipelines.TimestampPipeline": 200,
+    "scraper.pipelines.MongoPipeline": 800,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

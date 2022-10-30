@@ -1,11 +1,13 @@
 import scrapy
 from scraper.items import ScraperItem
+from scraper.constants import CABA, GBA
 
 
 class PanaleradeltaSpider(scrapy.Spider):
     name = "panalera_delta"
     allowed_domains = ["panaleradelta.com.ar"]
     start_urls = ["https://panaleradelta.com.ar/product-category/panales-de-bebes/"]
+    shipments = CABA + GBA
 
     def parse(self, response):
         """This function parses a sample response. Some contracts are mingled

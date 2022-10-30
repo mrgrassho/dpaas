@@ -1,6 +1,6 @@
 import re
 import json
-from typing import Dict, TypedDict, Union
+from typing import Dict, List, TypedDict, Union
 
 from .items import ScraperItem
 from .constants import DIAPER_SIZES, DIAPERS_NO_BRAND_REGEX, DIAPERS_REGEX
@@ -47,6 +47,14 @@ PROMOS_PACKS = {
 REPLACEMENTS_BLANCKS = {
     " ": ["\u00a0"]
 }
+
+def load_json(fpath):
+    with open(fpath, 'r') as fp:
+        return json.load(fp)
+
+
+BOYS_PERCENTILES = load_json('scraper/fixtures/wfa_boys_plain.json')
+GIRLS_PERCENTILES = load_json('scraper/fixtures/wfa_girls_plain.json')
 
 class DiaperCleaner:
     def __init__(self, replacements: Union[Dict, str]=None):
@@ -185,6 +193,16 @@ class DiaperCleaner:
         if _keys:
             raise MissingDataException(_keys)
 
+    def _add_percentils(self, item: ScraperItem, percentils, preffix) -> Dict:
+        _percentils = {}
+        for key, value in percentils.items():
+            _key = f"{preffix}_{key}"
+            if item.get('target_kg_min') <= value <= item.get('target_kg_max'):
+                _percentils[_key] = 1
+            else:
+                _percentils[_key] = 0
+        return _percentils
+
     def enhance(self, item: ScraperItem) -> ScraperItem:
         item = self._sanitize_fields(item)
         brand = item.get("brand")
@@ -202,4 +220,9 @@ class DiaperCleaner:
         target_kgs = self._get_target_kg(item)
         item.update(**target_kgs)
         item["unit_price"] = self._get_unit_price(item)
+        self._check_keys(item, ["target_kg_min", "target_kg_max"])
+        # boys_percentiles = self._add_percentils(item, BOYS_PERCENTILES, "boy")
+        # item.update(**boys_percentiles)
+        # girls_percentiles = self._add_percentils(item, GIRLS_PERCENTILES, "girl")
+        # item.update(**girls_percentiles)
         return item
