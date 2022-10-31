@@ -260,9 +260,7 @@ Todos los talles de este e-commerce se encuentra en un tag `data-installments`
   - https://www.xn--tiendamipaal-jhb.com.ar/panales
   
   
-### API
-
-En esta sección nos excedemos un poco del target de la charla. Aún asi describimos rapidamente el stack y como levantarla.
+### API - EN Construccion
 
 #### Stack
 
@@ -297,51 +295,6 @@ curl 'http://localhost:8080/query-diapers?sizes=g&brand=huggies&unit_price_lte=1
 ```json
 [
   {
-    "description": "babysec classic plus gx40",
-    "price": 416,
-    "url": "https://panaleraencasa.com/product/babysec-classic-plus-gx40/",
-    "image": "https://panaleraencasa.com/wp-content/uploads/2020/02/Copia-de-Copia-de-Copia-de-Copia-de-Copia-de-Copia-de-Copia-de-Copia-de-Copia-de-25-4-600x600-1-300x300.png",
-    "website": "panaleraencasa.com",
-    "brand": "babysec",
-    "size": "g",
-    "target_kg": {
-      "min": 8.5,
-      "max": 12
-    },
-    "units": 40,
-    "unit_price": 10.4
-  },
-  {
-    "description": "pañales babysec ultra gx120",
-    "price": 1286,
-    "url": "https://panaleraencasa.com/product/babysec-panal-ultra-superjumbo-packg/",
-    "image": "https://panaleraencasa.com/wp-content/uploads/2021/01/pan_ales_babysec-ultra-300x300.jpg",
-    "website": "panaleraencasa.com",
-    "brand": "babysec",
-    "size": "g",
-    "target_kg": {
-      "min": 8.5,
-      "max": 12
-    },
-    "units": 120,
-    "unit_price": 10.72
-  },
-  {
-    "description": "pañales huggies flex comfort g x 120",
-    "price": 1187,
-    "url": "https://panaleraencasa.com/product/127218/",
-    "image": "https://panaleraencasa.com/wp-content/uploads/2022/01/7736550409125-1-300x300.png",
-    "website": "panaleraencasa.com",
-    "brand": "huggies",
-    "size": "g",
-    "target_kg": {
-      "min": 9,
-      "max": 12.5
-    },
-    "units": 120,
-    "unit_price": 9.89
-  },
-  {
     "description": "babysec ultra g (8.5 a 12 kg) - x120",
     "price": 1267.99,
     "url": "https://www.botiga.com.uy/babysec-ultra-g-8-5-a-12-kg-120u.html",
@@ -349,10 +302,8 @@ curl 'http://localhost:8080/query-diapers?sizes=g&brand=huggies&unit_price_lte=1
     "website": "www.botiga.com.uy",
     "brand": "babysec",
     "size": "g",
-    "target_kg": {
-      "min": 8.5,
-      "max": 12
-    },
+    "target_kg_min": 8.5,
+    "target_kg_max": 12,
     "units": 120,
     "unit_price": 10.57
   }
