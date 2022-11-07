@@ -7,5 +7,3 @@ COPY requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 
 COPY . .
-
-CMD [ "python3", "./go-spider.py" ]

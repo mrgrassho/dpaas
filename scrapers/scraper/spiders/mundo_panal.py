@@ -14,7 +14,7 @@ BRAND_MAPPING = {
 class MundoPanalSpider(scrapy.Spider):
     name = "mundo_panal"
     allowed_domains = ["xn--elmundodelpaal-1nb.com.ar"]
-    custom_settings = {"LOG_FILE": "logs/mundo_panal.log", "LOG_LEVEL": "DEBUG"}
+    # custom_settings = {"LOG_FILE": "logs/mundo_panal.log", "LOG_LEVEL": "DEBUG"}
     urls = {
         "pampers": "https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/33/pagina/{}/",
         "huggies": "https://xn--elmundodelpaal-1nb.com.ar/#!/categoria/31/pagina/{}/",
@@ -57,10 +57,6 @@ class MundoPanalSpider(scrapy.Spider):
                 url=url,
                 image=image,
                 website=self.allowed_domains[0],
-                brand=None,
-                size=None,
-                target_kg=None,
-                units=None,
             )
         if not sizes:
             yield ScraperItem(
@@ -69,10 +65,6 @@ class MundoPanalSpider(scrapy.Spider):
                 url=url,
                 image=image,
                 website=self.allowed_domains[0],
-                brand=None,
-                size=None,
-                target_kg=None,
-                units=None,
             )
 
     def _get_brand(self, url):

@@ -6,7 +6,7 @@ class MeliSpider(scrapy.Spider):
     name = 'meli'
     allowed_domains = ['mercadolibre.com.ar']
     start_urls = ['http://listado.mercadolibre.com.ar']
-    custom_settings = {"LOG_FILE": "logs/meli.log", "LOG_LEVEL": "DEBUG"}
+    # custom_settings = {"LOG_FILE": "logs/meli.log", "LOG_LEVEL": "DEBUG"}
     path = '/bebes/higiene-cuidado-bebe/panales/descartables/{brand}/panales{from_page}_NoIndex_True'
     page_size = 50
     headers = {
@@ -57,7 +57,6 @@ class MeliSpider(scrapy.Spider):
             website=self.allowed_domains[0],
             brand=brand,
             size=size,
-            target_kg=None,
             units=units,
         )
 

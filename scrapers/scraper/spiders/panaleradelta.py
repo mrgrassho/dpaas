@@ -31,10 +31,6 @@ class PanaleradeltaSpider(scrapy.Spider):
                 url=url,
                 image=image,
                 website=self.allowed_domains[0],
-                brand=None,
-                size=None,
-                target_kg=None,
-                units=None,
             )
         next_page = response.xpath("//a[contains(@class, 'next')]/@href").get()
         if next_page is not None:

@@ -97,9 +97,6 @@ class CarrefourSpider(scrapy.Spider):
                 image=image,
                 website=self.allowed_domains[0],
                 brand=brand,
-                size=None,
-                target_kg=None,
-                units=None,
             )
         if items:
             yield self.next_page()

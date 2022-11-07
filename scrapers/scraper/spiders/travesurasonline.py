@@ -1,6 +1,6 @@
 import scrapy
 from scraper.items import ScraperItem
-from scrapers.scraper.constants import BAHIA_BLANCA
+from scraper.constants import BAHIA_BLANCA
 
 
 class TravesurasonlineSpider(scrapy.Spider):
@@ -48,9 +48,6 @@ class TravesurasonlineSpider(scrapy.Spider):
                 image=image,
                 website=self.allowed_domains[0],
                 brand=brand,
-                size=None,
-                target_kg=None,
-                units=None,
             )
         if items:
             yield self.next_page()

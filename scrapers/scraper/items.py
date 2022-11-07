@@ -18,3 +18,4 @@ class ScraperItem(scrapy.Item):
     target_kg_max = scrapy.Field()
     units = scrapy.Field()
     unit_price = scrapy.Field()
+    timestamp = scrapy.Field()

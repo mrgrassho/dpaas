@@ -43,10 +43,6 @@ class CotodigitalSpider(scrapy.Spider):
                 url=url,
                 image=image,
                 website=self.allowed_domains[0],
-                brand=None,
-                size=None,
-                target_kg=None,
-                units=None,
             )
         if items:
             yield self.next_page()
