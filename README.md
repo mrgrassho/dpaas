@@ -258,3 +258,55 @@ Todos los talles de este e-commerce se encuentra en un tag `data-installments`
   - https://www.morashop.ar/todo-para-tu-bebe/higiene-y-cuidado-del-bebe/panales
   - https://piquilines.com.ar/rn
   - https://www.xn--tiendamipaal-jhb.com.ar/panales
+  
+  
+### API - EN Construccion
+
+#### Stack
+
+| Aplicación     | Función     |
+| :------------- | :------------- |
+| MongoDB        | Base de Datos no relacional donde guardaremos los items scrapeados.  |
+| Mongo-Express  | Administrador de MongoDB, nos permite visualizar los datos alamcenados en MongoDB rapidamente |
+| Backend  | FastAPI - Aplicación de Backend que expondrá un endpoint `/query-diapers` |
+| Scrapers  | Scrapy - Proyecto de scrapy similar a los realizamos en secciones anteriores |
+
+#### ¿Como levantarlo?
+
+Es muy sencillo utilizamos `docker-compose` de la siguiente manera.
+
+```bash
+docker-compose build
+docker-compose up
+```
+
+#### Up & Running
+
+Aqui un ejemplo de que parámetros acepta la API:
+
+<img width="1440" alt="Screen Shot 2022-04-19 at 12 01 14" src="https://user-images.githubusercontent.com/20926292/163980007-2a2bf604-97fd-4960-9c92-0248da2b38cd.png">
+
+Y por aquí un ejemplo de como buscamos esos huggies G a menos de 11 UYU la unidad:
+
+```bash
+curl 'http://localhost:8080/query-diapers?sizes=g&brand=huggies&unit_price_lte=11' | jq
+```
+
+```json
+[
+  {
+    "description": "babysec ultra g (8.5 a 12 kg) - x120",
+    "price": 1267.99,
+    "url": "https://www.botiga.com.uy/babysec-ultra-g-8-5-a-12-kg-120u.html",
+    "image": "https://www.botiga.com.uy/media/catalog/product/cache/1/small_image/210x/d58d44b981214661663244ef00ea7e30/6/6/66019.jpg",
+    "website": "www.botiga.com.uy",
+    "brand": "babysec",
+    "size": "g",
+    "target_kg_min": 8.5,
+    "target_kg_max": 12,
+    "units": 120,
+    "unit_price": 10.57
+  }
+]
+```
+
