@@ -1,228 +1,134 @@
-import re
-import json
-from typing import Dict, List, TypedDict, Union
+from __future__ import annotations
 
-from .items import ScraperItem
-from .constants import DIAPER_SIZES, DIAPERS_NO_BRAND_REGEX, DIAPERS_REGEX
+import argparse
+import csv
+import json
+import logging
+import os
+import sys
+from os import environ
+from os.path import dirname, join
+from typing import Dict, Union
+
+from dotenv import load_dotenv
+
+from dpaas_core.extraction import MissingDataError, NotDiaperError, RuleBasedExtractor
+
 
 class CommonDiaperException(Exception):
     pass
 
+
 class NotDiaperException(CommonDiaperException):
     pass
+
 
 class MissingDataException(CommonDiaperException):
     def __init__(self, missing_fields):
         self.missing_fields = missing_fields
 
 
-class ReplacementDict(TypedDict):
-    brand: Dict
-    size: Dict
+logger = logging.getLogger(__name__)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
+dotenv_path = join(dirname(__file__), ".env")
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
-DEFAULT_REPLACEMENTS : ReplacementDict = {
-    "brand": {
-        "huggies": [r"hugies", r"hug(?=\s)"],
-        "pampers": [r"pamp(?=\s+)", r"^pants(?=\s+)"],
-        "babysec": [r"baby sec"],
-    },
-    "size": {
-        "pr": [r"prematuro", r"prem(?=\s+)"],
-        "rn": [r"reci.*n nacido", r"r\.n"],
-        "g": [r"grande", r"gde", r"gd", r"(?<=\s)l(?=\s+)"],
-        "m": [r"s\-m", r"mediano(?=\s*)", r"(?<=\s)med(?=\s+)"],
-        "p": [r"pequeño", r"peq"],
-        "xg": [r"xl"],
-        "x": [r"extra "],
-        "xxg": [r"xxxg" ],
-    }
-}
+DIR_DATA = environ.get("DIR_DATA")
 
-PROMOS_PACKS = {
-    "promo pack (?P<pack>[0-9]+)",
-    "pack x(?P<pack>[0-9]+)",
-}
+CSV_KEYS = [
+    "price",
+    "website",
+    "brand",
+    "size",
+    "target_kg_min",
+    "target_kg_max",
+    "units",
+    "unit_price",
+]
 
-REPLACEMENTS_BLANCKS = {
-    " ": ["\u00a0"]
-}
-
-def load_json(fpath):
-    with open(fpath, 'r') as fp:
-        return json.load(fp)
-
-
-BOYS_PERCENTILES = load_json('scraper/fixtures/wfa_boys_plain.json')
-GIRLS_PERCENTILES = load_json('scraper/fixtures/wfa_girls_plain.json')
 
 class DiaperCleaner:
-    def __init__(self, replacements: Union[Dict, str]=None):
-        _replacements = {}
-        if isinstance(replacements, str):
-            _replacements = json.load(open(replacements, 'r'))
-        elif isinstance(replacements, dict):
-            _replacements = replacements
-        self.replacements = {**DEFAULT_REPLACEMENTS, **_replacements}
+    def __init__(self, replacements: Union[Dict, str] = None):
+        self.extractor = RuleBasedExtractor()
 
-    def _extract_info(self, description: str) -> Dict:
-        """Extract information such as brand, size and units based on
-        a provided descrition.
-
-        :param description: Item description
-        :type description: str
-        :raises NotDiaperException: There is not an attribute match
-        :return: Returns a dictionary information
-        :rtype: Dict
-        """
-        for expresion in DIAPERS_REGEX:
-            match = re.search(expresion, description)
-            if match:
-                data = {
-                    "brand": match.group("brand")
-                }
-                if len(match.groups()) >= 2:
-                    data["size"] = match.group("size")
-                if len(match.groups()) >= 3:
-                    data["units"] = int(match.group("units"))
-                return data
-        raise NotDiaperException()
-
-    def _size_and_units(self, size_units: str) -> Dict:
-        for expresion in DIAPERS_NO_BRAND_REGEX:
-            match = re.search(expresion, size_units)
-            if match:
-                data = {
-                    "size": match.group("size")
-                }
-                if len(match.groups()) >= 2:
-                    data["units"] = int(match.group("units"))
-                return data
-
-    def _get_pack(self, description: str) -> int:
-        for expresion in PROMOS_PACKS:
-            match = re.search(expresion, description)
-            if match:
-                return int(match.group("pack"))
-        return 1
-
-    def _sanitize_float(self, item: str) -> float:
-        """Given a string number formatted as currency returns a float.
-
-        :param item: String number
-        :type item: str
-        :return: Floats
-        :rtype: float
-        """
+    def enhance(self, item):
         try:
-            if not item:
-                return None
-            if isinstance(item, str) and re.match(".*\.\d{3}", item):
-                item = item.replace(".", "")
-            return float(item)
-        except ValueError:
-            if re.match(".*\.\d{2}$", item):
-                return float(item.replace(",", ""))
-            elif re.match(".*\,\d{2}$", item):
-                return float(item.replace(".", "").replace(",", "."))
-
-    def _sanitize_key(self, key: str, val: str) -> str:
-        """Sanitizes key to a standard format.
-
-        This methods applies the following operations:
-         - Lowercase strings.
-         - Applies replacements based on key
-
-        :param description: Raw description
-        :type description: str
-        :return: Sanitized description
-        :rtype: str
-        """
-        if not val:
-            return None
-        rvalue = val.lower()
-        for fstr, repls in REPLACEMENTS_BLANCKS.items():
-            for repl in repls:
-                rvalue = rvalue.replace(repl, fstr)
-        current_replacements = self.replacements.get(key)
-        for value, expressions in current_replacements.items():
-            for expresion in expressions:
-                if re.search(expresion, rvalue):
-                    rvalue = re.sub(expresion, value, rvalue)
-                    break
-        return rvalue
-
-    def _sanitize_size(self, value: str) -> str:
-        return self._sanitize_key("size", value)
-
-    def _sanitize_brand(self, value: str) -> str:
-        return self._sanitize_key("brand", value)
-
-    def _sanitize_description(self, value: str) -> str:
-        rvalue = self._sanitize_key("size", value)
-        return self._sanitize_key("brand", rvalue)
-
-    def _sanitize_fields(self, item: ScraperItem) -> ScraperItem:
-        item.update({
-            "price": self._sanitize_float(item.get("price")),
-            "description": self._sanitize_description(item.get("description")),
-            "size": self._sanitize_size(item.get("size")),
-            "brand": self._sanitize_brand(item.get("brand")),
-            "units": int(item.get("units")) if item.get("units") else None,
-        })
+            enriched = self.extractor.enrich(item)
+        except NotDiaperError:
+            raise NotDiaperException()
+        except MissingDataError as exc:
+            raise MissingDataException(exc.missing_fields)
+        item.update(enriched)
         return item
 
-    def _get_target_kg(self, item: ScraperItem) -> str:
-        target_kg = DIAPER_SIZES.get(item.get("brand"), {}).get(item.get("size"))
-        return {
-            "target_kg_min": target_kg.get("min") if target_kg else None,
-            "target_kg_max": target_kg.get("max") if target_kg else None
-        }
 
-    def _get_unit_price(self, item: ScraperItem) -> str:
-        units = item.get("units")
-        price = item.get("price")
-        return round(price / int(units), 2) if all((units, price)) else None
+class CliDiaperCleaner:
+    def __init__(self, dir, fname, fall):
+        self.dir = dir
+        self.fname = fname
+        self.fall = fall
+        self.cleaner = DiaperCleaner()
 
-    def _check_keys(self, item, keys):
-        _keys = []
-        for key in keys:
-            val = item.get(key)
-            if val is None or val == "":
-                _keys.append(key)
-        if _keys:
-            raise MissingDataException(_keys)
+    def _process_file(self, fname):
+        logger.info("processing %s", fname)
+        result = []
+        not_diaper = 0
+        missing_data = 0
+        with open(fname, "r") as fp:
+            items = json.load(fp)
+        for item in items:
+            try:
+                result.append(self.cleaner.enhance(item))
+            except NotDiaperException:
+                not_diaper += 1
+            except MissingDataException:
+                missing_data += 1
 
-    def _add_percentils(self, item: ScraperItem, percentils, preffix) -> Dict:
-        _percentils = {}
-        for key, value in percentils.items():
-            _key = f"{preffix}_{key}"
-            if item.get('target_kg_min') <= value <= item.get('target_kg_max'):
-                _percentils[_key] = 1
-            else:
-                _percentils[_key] = 0
-        return _percentils
+        splited = fname.split(".")
+        fout = f"{splited[0]}.cleaned.{splited[1]}"
+        with open(fout, "w") as fp:
+            json.dump(result, fp, indent=2)
 
-    def enhance(self, item: ScraperItem) -> ScraperItem:
-        item = self._sanitize_fields(item)
-        brand = item.get("brand")
-        size = item.get("size")
-        units = item.get("units")
-        description = item.get("description") or ""
-        if not all((brand, size, units)):
-            extracted_info = self._extract_info(description)
-            item.update(**extracted_info)
-        if not item.get("units") and item.get("size"):
-            extracted_info = self._size_and_units(item.get("size"))
-            item.update(**extracted_info) if extracted_info else None
-        self._check_keys(item, ["brand", "price", "size", "units"])
-        item["units"] *= self._get_pack(description)
-        target_kgs = self._get_target_kg(item)
-        item.update(**target_kgs)
-        item["unit_price"] = self._get_unit_price(item)
-        self._check_keys(item, ["target_kg_min", "target_kg_max"])
-        # boys_percentiles = self._add_percentils(item, BOYS_PERCENTILES, "boy")
-        # item.update(**boys_percentiles)
-        # girls_percentiles = self._add_percentils(item, GIRLS_PERCENTILES, "girl")
-        # item.update(**girls_percentiles)
-        return item
+        if self.fall and result:
+            exists = os.path.exists(self.fall) and os.path.getsize(self.fall) > 0
+            with open(self.fall, "a", newline="") as fp:
+                writer = csv.DictWriter(fp, fieldnames=CSV_KEYS)
+                if not exists:
+                    writer.writeheader()
+                for row in result:
+                    writer.writerow({key: row.get(key, "") for key in CSV_KEYS})
+
+        ignored = len(items) - len(result)
+        logger.info("out=%s ignored=%s results=%s total=%s missing_data=%s not_diaper=%s", fout, ignored, len(result), len(items), missing_data, not_diaper)
+        return len(items), ignored, not_diaper, missing_data
+
+    def process(self):
+        results, ignored, not_diaper, missing_data = 0, 0, 0, 0
+        if self.dir:
+            for root, _, files in os.walk(self.dir):
+                for name in files:
+                    if "cleaned" not in name:
+                        counts = self._process_file(join(root, name))
+                        results += counts[0]
+                        ignored += counts[1]
+                        not_diaper += counts[2]
+                        missing_data += counts[3]
+        else:
+            results, ignored, not_diaper, missing_data = self._process_file(self.fname)
+        logger.info("summary ignored=%s missing_data=%s not_diaper=%s results=%s total=%s", ignored, missing_data, not_diaper, results - ignored, results)
+        return results, ignored
+
+
+def main():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-d", "--dir", type=str, default=DIR_DATA, help="Specify input directory")
+    parser.add_argument("-f", "--file", type=str, default=None, help="Specify input file")
+    parser.add_argument("-O", "--output", type=str, default=None, help="Specify output CSV file")
+    args = parser.parse_args()
+    CliDiaperCleaner(args.dir, args.file, args.output).process()
+
+
+if __name__ == "__main__":
+    main()

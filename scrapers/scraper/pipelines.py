@@ -1,82 +1,56 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+from __future__ import annotations
 
-
-# useful for handling different item types with a single interface
-from datetime import datetime
-import json
 import logging
-import re
+from datetime import datetime
+
 from itemadapter import ItemAdapter
-import pymongo
-from scrapy.exceptions import DropItem
 
-from scraper.clean_data import DiaperCleaner, MissingDataException, NotDiaperException
+from dpaas_core.extraction import ExtractionService
+from dpaas_core.storage import DuckDBStore
 
-from .settings import MONGO_DATABASE, MONGO_URI
+from .settings import DUCKDB_PATH
 
-from .constants import DIAPER_SIZES, DIAPERS_REGEX
-
-
-REPLACEMENTS = {
-    "pr": [r"prematuro", r"prem"],
-    "rn": [r"reci.*n nacido"],
-    "huggies": [r"hugies"],
-    "g": [r"grande"],
-    "m": [r"s\-m"],
-}
 
 logger = logging.getLogger(__name__)
 
 
-class DiaperPipeline:
-    def __init__(self) -> None:
-        self.cleaner = DiaperCleaner()
-
-    def process_item(self, item, spider):
-        try:
-            adapter = ItemAdapter(item)
-            self.cleaner.enhance(adapter)
-            return item
-        except NotDiaperException:
-            raise DropItem(f"Not a diaper - {item}")
-        except MissingDataException as e:
-            raise DropItem(f"Missing {e.missing_fields} in {item}")
-
-
 class TimestampPipeline:
-
     def process_item(self, item, spider):
         adapter = ItemAdapter(item)
-        adapter["timestamp"] = datetime.now().isoformat()
+        scraped_at = datetime.utcnow().isoformat()
+        adapter["timestamp"] = scraped_at
+        adapter["scraped_at"] = scraped_at
         return item
 
 
-class MongoPipeline:
-
-    collection_name = "scrapy_items"
-
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri = mongo_uri
-        self.mongo_db = mongo_db
+class DuckDBPipeline:
+    def __init__(self, database_path: str) -> None:
+        self.database_path = database_path
+        self.store = None
+        self.run_id = None
+        self.extractor = None
 
     @classmethod
     def from_crawler(cls, crawler):
-        logger.info(f"MONGO_URI={MONGO_URI}, MONGO_DATABAS={MONGO_DATABASE}")
-        return cls(mongo_uri=MONGO_URI, mongo_db=MONGO_DATABASE)
+        database_path = crawler.settings.get("DUCKDB_PATH") or DUCKDB_PATH
+        logger.info("DUCKDB_PATH=%s", database_path)
+        return cls(database_path=database_path)
 
     def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_uri)
-        self.db = self.client[self.mongo_db]
-        self.db[self.collection_name].delete_many(
-            {"website": spider.allowed_domains[0]}
-        )
+        self.store = DuckDBStore(self.database_path)
+        self.run_id = self.store.start_run(spider.name)
+        self.extractor = ExtractionService.from_env(storage=self.store)
 
     def close_spider(self, spider):
-        self.client.close()
+        if self.store and self.run_id:
+            self.store.finish_run(self.run_id)
+            self.store.close()
 
     def process_item(self, item, spider):
-        self.db[self.collection_name].insert_one(ItemAdapter(item).asdict())
+        raw = ItemAdapter(item).asdict()
+        ok, observation_id = self.store.write_raw_item(raw, run_id=self.run_id, extractor=self.extractor)
+        if ok:
+            logger.debug("stored observation_id=%s spider=%s", observation_id, spider.name)
+        else:
+            logger.debug("stored rejection spider=%s item=%s", spider.name, raw)
         return item

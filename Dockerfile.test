@@ -1,0 +1,23 @@
+FROM python:3.9-slim-buster
+
+WORKDIR /app
+
+COPY api/requirements.txt /tmp/api-requirements.txt
+COPY scrapers/requirements.txt /tmp/scrapers-requirements.txt
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir \
+    -r /tmp/api-requirements.txt \
+    -r /tmp/scrapers-requirements.txt \
+    pytest \
+    requests
+
+COPY api /app/api
+COPY scrapers /app/scrapers
+COPY dpaas_core /app/dpaas_core
+COPY tests /app/tests
+
+ENV PYTHONPATH=/app/tests/_shims:/app:/app/scrapers:/app/api
+ENV PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
+
+CMD ["pytest", "-q"]
