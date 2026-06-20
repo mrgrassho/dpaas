@@ -1,58 +1,43 @@
-version: '3.9'
 services:
-    mongo:
-        image: mongo:5.0
-        ports:
-            - "27017:27017"
-        networks:
-            - mongo-compose-network
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-            MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS}
-            MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
-        volumes:
-            - ~/apps/mongo:/data/db
+  scrapers:
+    build:
+      context: .
+      dockerfile: scrapers/Dockerfile
+    command: python -m scraper.run_etl --spider all --database ${CONTAINER_DUCKDB_PATH:-/data/dpaas.duckdb}
+    environment:
+      DUCKDB_PATH: ${CONTAINER_DUCKDB_PATH:-/data/dpaas.duckdb}
+      LLM_EXTRACTOR: ${LLM_EXTRACTOR:-0}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.0-flash-001}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      SCRAPER_USER_AGENT: ${SCRAPER_USER_AGENT:-dpaas-price-research/0.1}
+    volumes:
+      - ./data:/data
+      - ./notebooks:/app/notebooks:ro
 
-    mongo-express:
-        image: mongo-express:0.54
-        ports:
-            - "8081:8081"
-        depends_on:
-            - mongo
-        networks:
-            - mongo-compose-network
-        environment:
-            ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER}
-            ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PASS}
-            ME_CONFIG_MONGODB_SERVER: mongo
-        volumes:
-            - ./data:/data/db
+  backend:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    ports:
+      - "8082:80"
+    environment:
+      DUCKDB_PATH: ${CONTAINER_DUCKDB_PATH:-/data/dpaas.duckdb}
+      LLM_EXTRACTOR: ${LLM_EXTRACTOR:-0}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-google/gemini-2.0-flash-001}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    volumes:
+      - ./data:/data
 
-    scrapers:
-        build: ./scrapers
-        depends_on:
-            - mongo
-        command: bash -c 'scrapy list | xargs -I {} -t scrapy crawl {}'
-        networks:
-            - mongo-compose-network
-        environment:
-            MONGO_URI: ${MONGO_URI}
-            MONGO_DATABASE: ${MONGO_DATABASE}
-        volumes:
-            - ./scrapers:/app
-
-    backend:
-        build: ./api
-        ports:
-            - "8082:80"
-        depends_on:
-            - mongo
-        networks:
-            - mongo-compose-network
-        environment:
-            MONGO_URI: ${MONGO_URI}
-            MONGO_DATABASE: ${MONGO_DATABASE}
-
-networks:
-  mongo-compose-network:
-    driver: bridge
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    command: sh -c "python -m compileall -q api scrapers dpaas_core tests && pytest -q"
+    environment:
+      DUCKDB_PATH: ${CONTAINER_DUCKDB_PATH:-/data/dpaas.duckdb}
+      PYTHONPATH: /app/tests/_shims:/app:/app/scrapers:/app/api
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+    volumes:
+      - ./data:/data

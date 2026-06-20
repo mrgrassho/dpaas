@@ -26,6 +26,10 @@ Thumbs.dB
 
 # Data
 scrapers/scraper/data*/*.json
+/data/
+/exports/
+*.duckdb
+*.duckdb.wal
 
 # Logs
 *.log
@@ -34,4 +38,5 @@ scrapers/scraper/data*/*.json
 *.zip
 
 # Env
+.env
 *.env

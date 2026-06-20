@@ -1,6 +1,43 @@
 
 # Análisis de los sitios seleccionados
 
+## MVP local DuckDB/API
+
+El runtime local guarda observaciones append-only en DuckDB y expone endpoints listos para tablero.
+
+Variables principales:
+
+```bash
+DUCKDB_PATH=data/dpaas.duckdb
+CONTAINER_DUCKDB_PATH=/data/dpaas.duckdb
+LLM_EXTRACTOR=0
+OPENROUTER_MODEL=google/gemini-2.0-flash-001
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_API_KEY=
+SCRAPER_USER_AGENT=dpaas-price-research/0.1
+```
+
+Comandos:
+
+```bash
+make etl
+make etl-sample
+make api
+make test
+```
+
+Los comandos del Makefile ejecutan todo dentro de Docker Compose. `make etl` corre `python -m scraper.run_etl --spider all --database /data/dpaas.duckdb` en el contenedor `scrapers`. El spider de Mercado Libre queda fuera de `all` hasta tener una configuración API-safe. `make etl-sample` monta `notebooks/diapers.csv` para desarrollo sin depender de sitios externos.
+
+Endpoints:
+
+- `/query-diapers`: últimos precios por producto; usar `history=true` para historial completo.
+- `/analytics/price-series`
+- `/analytics/brand-size-summary`
+- `/analytics/cost-scenarios`
+- `/analytics/data-quality`
+- `/exports/observations.csv`
+- `/dashboard`
+
 A continuación listamos los sitios seleccionados:
 
 - [Pañales online](https://www.panalesonline.com.ar/panales/bebes/)
@@ -309,4 +346,3 @@ curl 'http://localhost:8080/query-diapers?sizes=g&brand=huggies&unit_price_lte=1
   }
 ]
 ```
-

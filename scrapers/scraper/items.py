@@ -19,3 +19,5 @@ class ScraperItem(scrapy.Item):
     units = scrapy.Field()
     unit_price = scrapy.Field()
     timestamp = scrapy.Field()
+    scraped_at = scrapy.Field()
+    currency = scrapy.Field()

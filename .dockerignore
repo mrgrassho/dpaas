@@ -1,0 +1,11 @@
+.git
+.pytest_cache
+__pycache__
+*.pyc
+*.duckdb
+*.duckdb.wal
+data
+htmlcov
+venv
+.tox
+.mypy_cache
