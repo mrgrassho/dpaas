@@ -52,6 +52,116 @@ def test_arbitrary_brand_with_diaper_text_is_supported():
     assert result["units"] == 20
 
 
+def test_rule_extractor_handles_compact_tienda_nube_variant_size_units():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "Huggies Protect Plus mes de consumo M, G, XG, XXG",
+            "price": 20060,
+            "website": "example.test",
+            "size": "XXGx50",
+        }
+    )
+    assert result["brand"] == "huggies"
+    assert result["size"] == "xxg"
+    assert result["units"] == 50
+
+
+def test_rule_extractor_handles_und_and_explicit_kg_range():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "BABYSEC ULTRA SEC (talle/peso: G 8.5 a 12 kg. 60 und.)",
+            "price": "12000",
+            "website": "example.test",
+        }
+    )
+    assert result["brand"] == "babysec"
+    assert result["size"] == "g"
+    assert result["units"] == 60
+    assert result["target_kg_min"] == 8.5
+    assert result["target_kg_max"] == 12.0
+
+
+def test_rule_extractor_handles_line_alias_and_leading_pack_multiplier():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "2 Natural Care M x68 + 2 Toallitas Disney Amarillas x48",
+            "price": "58.160",
+            "website": "example.test",
+        }
+    )
+    assert result["brand"] == "huggies"
+    assert result["size"] == "m"
+    assert result["units"] == 136
+
+
+def test_rule_extractor_handles_size_then_units_without_x():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "Babysec Ultrasec Med 68 Mes De Cons",
+            "price": "16.220",
+            "website": "example.test",
+        }
+    )
+    assert result["brand"] == "babysec"
+    assert result["size"] == "m"
+    assert result["units"] == 68
+
+
+def test_rule_extractor_preserves_rn_plus_size():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "Pampers Deluxe RN+ 56 (hasta 6 kg)",
+            "price": "27100",
+            "website": "example.test",
+        }
+    )
+    assert result["brand"] == "pampers"
+    assert result["size"] == "rn+"
+    assert result["units"] == 56
+
+
+def test_rule_extractor_uses_image_slug_for_sparse_listing_units():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "PAMPERS BABYSAN HIPOALERGENICO PAÑAL",
+            "price": 39000,
+            "website": "example.test",
+            "image": "https://cdn.example.test/pampers-babysan-hipo-talle-xg-x58.webp",
+        }
+    )
+    assert result["brand"] == "pampers"
+    assert result["size"] == "xg"
+    assert result["units"] == 58
+
+
+def test_rule_extractor_uses_url_slug_for_units():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "Pañales Pampers Premium Care XXXG",
+            "price": 36890,
+            "website": "example.test",
+            "url": "https://example.test/productos/panales-pampers-premium-care-xxxg-x52/",
+        }
+    )
+    assert result["brand"] == "pampers"
+    assert result["size"] == "xxxg"
+    assert result["units"] == 52
+
+
+def test_rule_extractor_uses_hyphenated_x_units_from_image_slug():
+    result = RuleBasedExtractor().enrich(
+        {
+            "description": "HUGGIES RECIEN NACIDO",
+            "price": 11100,
+            "website": "example.test",
+            "image": "https://cdn.example.test/huggies-natural-care-rec-nacido-x-34.webp",
+        }
+    )
+    assert result["brand"] == "huggies"
+    assert result["size"] == "rn"
+    assert result["units"] == 34
+
+
 class FakeOpenRouterClient:
     def __init__(self):
         self.calls = 0

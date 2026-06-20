@@ -1,8 +1,10 @@
 import json
+from itertools import zip_longest
 from re import match
 import scrapy
 from scraper import settings
 import lxml.html
+from lxml.etree import ParserError
 
 from scraper.items import ScraperItem
 from scraper.constants import CABA, GBA, ROSARIO, SAN_JUAN, SANTA_CRUZ, SANTA_ROSA
@@ -29,11 +31,59 @@ class TiendaNubeSpider(scrapy.Spider):
     def start_requests(self):
         yield self.next_page()
 
+    def _first_value(self, *values):
+        for value in values:
+            if value not in (None, ""):
+                return value
+        return None
+
+    def _price(self, common, variant):
+        offers = common.get("offers") or {}
+        return self._first_value(
+            variant.get("price_number"),
+            variant.get("price"),
+            offers.get("price_number"),
+            offers.get("price"),
+        )
+
+    def _url(self, common, variant):
+        offers = common.get("offers") or {}
+        return self._first_value(variant.get("url"), offers.get("url"))
+
+    def _response_payload(self, response):
+        try:
+            payload = response.json()
+            return payload.get("html", ""), bool(payload.get("has_next"))
+        except ValueError:
+            return response.text, False
+
+    def _product_jsons(self, script_nodes):
+        products = []
+        for script in script_nodes:
+            try:
+                data = json.loads(script)
+            except (TypeError, json.JSONDecodeError):
+                continue
+            if isinstance(data, dict) and data.get("name") and data.get("offers"):
+                products.append(data)
+        return products
+
+    def _variant_jsons(self, variant_nodes):
+        variants = []
+        for raw_variant in variant_nodes:
+            try:
+                data = json.loads(raw_variant)
+            except (TypeError, json.JSONDecodeError):
+                variants.append([])
+                continue
+            variants.append(data if isinstance(data, list) else [])
+        return variants
+
     def item(self, common, variant):
         return ScraperItem(
             description=common.get("name"),
-            price=variant.get("price_number"),
-            url=common.get("offers", {}).get("url"),
+            price=self._price(common, variant),
+            url=self._url(common, variant),
             image=common.get("image"),
             website=self.allowed_domains[0],
             brand=None,
@@ -42,20 +92,29 @@ class TiendaNubeSpider(scrapy.Spider):
         )
 
     def parse(self, response):
-        raw_html = response.json().get("html", "")
-        html_response = lxml.html.fromstring(raw_html)
-        commons = html_response.xpath(self.items_xpath)
-        variants = html_response.xpath(self.variants_xpath)
+        raw_html, has_next = self._response_payload(response)
+        if not raw_html.strip():
+            return
+        try:
+            html_response = lxml.html.fromstring(raw_html)
+        except ParserError:
+            return
+
+        commons = self._product_jsons(html_response.xpath(self.items_xpath))
+        variants = self._variant_jsons(html_response.xpath(self.variants_xpath))
         if not variants:
             for common in commons:
-                common_json = json.loads(common)
-                yield self.item(common_json, {})
+                yield self.item(common, {})
         else:
-            for common, variant in zip(commons, variants):
-                common_json = json.loads(common)
-                for item_variant in json.loads(variant):
-                    yield self.item(common_json, item_variant)
-        if response.json().get("has_next"):
+            for common, variant in zip_longest(commons, variants, fillvalue=[]):
+                if not common:
+                    continue
+                if variant:
+                    for item_variant in variant:
+                        yield self.item(common, item_variant)
+                else:
+                    yield self.item(common, {})
+        if has_next:
             yield self.next_page()
 
 
@@ -108,16 +167,7 @@ class PanaleraDoremiSpider(TiendaNubeSpider):
     shipments = CABA
 
     def item(self, common, variant):
-        return ScraperItem(
-            description=common.get("name"),
-            price=common.get("offers", {}).get("price"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=None,
-            units=None,
-        )
+        return super().item(common, variant)
 
 
 class PanaleraEscondidaSpider(TiendaNubeSpider):
@@ -127,18 +177,7 @@ class PanaleraEscondidaSpider(TiendaNubeSpider):
     shipments = SANTA_CRUZ
 
     def item(self, common, variant):
-        value = variant.get("option0")
-        attrs = value.split(" x ") if value else []
-        return ScraperItem(
-            description=common.get("name"),
-            price=variant.get("price_number"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=attrs[0] if len(attrs) >= 1 else None,
-            units=attrs[1] if len(attrs) >= 2 else None,
-        )
+        return super().item(common, variant)
 
 class PanalOnceSpider(TiendaNubeSpider):
     name = "panal_once"
@@ -168,16 +207,7 @@ class PanolinoSpider(TiendaNubeSpider):
     shipments = CABA + GBA
 
     def item(self, common, variant):
-        return ScraperItem(
-            description=common.get("name"),
-            price=common.get("offers", {}).get("price"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=None,
-            units=None,
-        )
+        return super().item(common, variant)
 
 class VMComprasSpider(PanolinoSpider):
     name = "vmdecompras"
@@ -192,18 +222,7 @@ class PerfumeriasMiriamSpider(TiendaNubeSpider):
     shipments = CABA + GBA
 
     def item(self, common, variant):
-        value = variant.get("option0")
-        attrs = value.lower().replace(" x ", " ").split(" ") if value else []
-        return ScraperItem(
-            description=common.get("name"),
-            price=variant.get("price_number"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=attrs[0] if len(attrs) >= 1 else None,
-            units=attrs[1] if len(attrs) >= 2 else None
-        )
+        return super().item(common, variant)
 
 # TODO: Armar base TiendaNubeLegacy ya que no funciona con el
 #       scraper actual.
@@ -223,16 +242,10 @@ class MorashopSpider(TiendaNubeSpider):
     def item(self, common, variant):
         size = f'{variant.get("option0")} {variant.get("option1")}'
         m = match(".*\((.*)\)", size)
-        return ScraperItem(
-            description=common.get("name"),
-            price=variant.get("price_number"),
-            url=common.get("offers", {}).get("url"),
-            image=common.get("image"),
-            website=self.allowed_domains[0],
-            brand=None,
-            size=m.group(1) if m else None,
-            units=None,
-        )
+        item = super().item(common, variant)
+        if m:
+            item["size"] = m.group(1)
+        return item
 
 
 # TODO: Revisar porque muere en la pagina 2

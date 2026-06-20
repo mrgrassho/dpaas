@@ -31,14 +31,15 @@ class MissingDataError(ExtractionError):
 
 
 KNOWN_BRAND_PATTERNS = {
-    "huggies": [r"\bhuggies\b", r"\bhugies\b", r"\bhug(?=\s)"],
+    "huggies": [r"\bhuggies\b", r"\bhugies\b", r"\bhug(?=\s)", r"\bnatural care\b", r"\bflexi comfort\b", r"\blittle swimmers\b"],
     "pampers": [r"\bpampers\b", r"\bpamp(?=\s+)", r"\bpants(?=\s+)"],
-    "babysec": [r"\bbabysec\b", r"\bbaby\s+sec\b"],
+    "babysec": [r"\bbabysec\b", r"\bbaby\s+sec\b", r"\bultra\s?sec\b", r"\bultra soft\b"],
     "estrella": [r"\bestrella\b"],
+    "duffy": [r"\bduffy\b"],
 }
 
 SIZE_PATTERNS = [
-    ("xxxg", [r"\bxxxg\b", r"\bxxxl\b", r"\b3xg\b"]),
+    ("xxxg", [r"\bxxxg\b", r"\bxxxl\b", r"\b3xg\b", r"\bjunior\b"]),
     ("xxg", [r"\bxxg\b", r"\bxxl\b", r"\b2xg\b"]),
     ("xg", [r"\bxg\b", r"\bxl\b"]),
     ("rn+", [r"\brn\s*\+\b", r"\brn\s*plus\b"]),
@@ -65,6 +66,39 @@ STOP_BRAND_TOKENS = {
     "sec",
     "pants",
 }
+
+SIZE_ALIASES = {
+    "prematuro": "pr",
+    "prem": "pr",
+    "pr": "pr",
+    "rn+": "rn+",
+    "rn": "rn",
+    "recien nacido": "rn",
+    "pequeno": "p",
+    "peq": "p",
+    "p": "p",
+    "mediano": "m",
+    "med": "m",
+    "m": "m",
+    "grande": "g",
+    "gde": "g",
+    "gd": "g",
+    "g": "g",
+    "xl": "xg",
+    "xg": "xg",
+    "xxl": "xxg",
+    "xxg": "xxg",
+    "xxxl": "xxxg",
+    "xxxg": "xxxg",
+    "junior": "xxxg",
+}
+
+SIZE_TOKEN_PATTERN = r"xxxg|xxg|xg|rn\+|rn|pr|xxxl|xxl|xl|prematuro|prem|recien nacido|pequeno|peq|mediano|med|grande|gde|gd|junior|m|g|p"
+SIZE_UNIT_PATTERN = (
+    rf"(?<![a-z0-9])(?P<size>{SIZE_TOKEN_PATTERN})"
+    rf"(?:\s*x\s*|[\s_\-]+x?[\s_\-]*)"
+    rf"(?P<units>\d{{1,4}})(?![\.,]\d)(?=$|[^0-9])"
+)
 
 DIAPER_SIZE_TABLE = {
     "huggies": {
@@ -97,6 +131,14 @@ DIAPER_SIZE_TABLE = {
         "xxxg": (17.0, None),
     },
     "estrella": {
+        "p": (5.0, 7.5),
+        "m": (6.0, 9.5),
+        "g": (9.0, 12.0),
+        "xg": (12.0, 15.0),
+        "xxg": (14.0, 20.0),
+        "xxxg": (17.0, None),
+    },
+    "duffy": {
         "p": (5.0, 7.5),
         "m": (6.0, 9.5),
         "g": (9.0, 12.0),
@@ -189,6 +231,11 @@ def normalize_size(value: Any) -> Optional[str]:
     text = normalize_text(value)
     if not text:
         return None
+    if re.search(r"\brn\s*\+", text):
+        return "rn+"
+    compact = re.search(SIZE_UNIT_PATTERN, text)
+    if compact:
+        return SIZE_ALIASES.get(compact.group("size"), compact.group("size"))
     for size, patterns in SIZE_PATTERNS:
         if any(re.search(pattern, text) for pattern in patterns):
             return size
@@ -232,9 +279,10 @@ def extract_units(raw_units: Any, text: str) -> Optional[int]:
     if units:
         return units
     patterns = [
-        r"\bx\s*(?P<units>\d{1,4})\b",
+        SIZE_UNIT_PATTERN,
+        r"(?<![a-z0-9])x[\s_\-]*(?P<units>\d{1,4})(?![\.,]\d)(?=$|[^0-9])",
         r"\[(?P<units>\d{1,4})\s*uni\.?\]",
-        r"\b(?P<units>\d{1,4})\s*(?:u|un|uni|unid|unidades|panales|pa)\.?\b",
+        r"\b(?P<units>\d{1,4})\s*(?:u|un|uni|und|unid|unidades|panales|pa)\.?\b",
         r"\b(?P<units>\d{1,4})\s*$",
     ]
     for pattern in patterns:
@@ -248,6 +296,7 @@ def extract_pack_multiplier(text: str) -> int:
     patterns = [
         r"(?:promo|combo)\s*(?:pack\s*)?x\s*(?P<pack>\d{1,2})\b",
         r"\b(?P<pack>\d{1,2})\s*(?:packs|paquetes)\b",
+        rf"^\s*(?P<pack>[2-9])\s+.*{SIZE_UNIT_PATTERN}",
     ]
     for pattern in patterns:
         match = re.search(pattern, text)
@@ -278,6 +327,8 @@ class RuleBasedExtractor:
                 normalize_text(raw.get("brand")),
                 normalize_text(raw.get("size")),
                 normalize_text(raw.get("units")),
+                normalize_text(raw.get("url")),
+                normalize_text(raw.get("image")),
             ]
             if part
         )

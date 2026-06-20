@@ -319,24 +319,30 @@ class DuckDBStore:
         run_id = self.start_run(spider)
         count = 0
         rejected = 0
-        with open(csv_path, "r", newline="") as fp:
-            for row in csv.DictReader(fp):
-                raw = {
-                    "description": row.get("description") or f"{row.get('brand')} {row.get('size')} x{row.get('units')}",
-                    "price": row.get("price"),
-                    "website": row.get("website"),
-                    "brand": row.get("brand"),
-                    "size": row.get("size"),
-                    "units": row.get("units"),
-                    "target_kg_min": row.get("target_kg_min"),
-                    "target_kg_max": row.get("target_kg_max"),
-                    "unit_price": row.get("unit_price"),
-                    "scraped_at": utcnow().isoformat(),
-                }
-                ok, _ = self.write_raw_item(raw, run_id=run_id)
-                count += int(ok)
-                rejected += int(not ok)
-        self.finish_run(run_id)
+        status = "completed"
+        try:
+            with open(csv_path, "r", newline="") as fp:
+                for row in csv.DictReader(fp):
+                    raw = {
+                        "description": row.get("description") or f"{row.get('brand')} {row.get('size')} x{row.get('units')}",
+                        "price": row.get("price"),
+                        "website": row.get("website"),
+                        "brand": row.get("brand"),
+                        "size": row.get("size"),
+                        "units": row.get("units"),
+                        "target_kg_min": row.get("target_kg_min"),
+                        "target_kg_max": row.get("target_kg_max"),
+                        "unit_price": row.get("unit_price"),
+                        "scraped_at": utcnow().isoformat(),
+                    }
+                    ok, _ = self.write_raw_item(raw, run_id=run_id)
+                    count += int(ok)
+                    rejected += int(not ok)
+        except Exception:
+            status = "failed"
+            raise
+        finally:
+            self.finish_run(run_id, status=status)
         return {"run_id": run_id, "inserted": count, "rejected": rejected}
 
     def _where_clause(self, filters: Mapping[str, Any], latest: bool) -> Tuple[str, List[Any]]:
