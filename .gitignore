@@ -38,4 +38,5 @@ scrapers/scraper/data*/*.json
 *.zip
 
 # Env
+.env
 *.env
