@@ -35,8 +35,19 @@ Endpoints:
 - `/analytics/brand-size-summary`
 - `/analytics/cost-scenarios`
 - `/analytics/data-quality`
+- `/source-stores`: fuentes conocidas y estado de disponibilidad; filtrar con `availability=available`, `availability=unavailable,needs_review`, `region=amba`, `scraper_status=implemented`, o `popular_buenos_aires=true`.
 - `/exports/observations.csv`
 - `/dashboard`
+
+`make etl` usa el catalogo de fuentes para ejecutar solo spiders con pagina disponible y scraper implementado cuando se pide `--spider all`. Un spider inactivo o pendiente se puede correr explicitamente por nombre para debug.
+
+Estados del catalogo:
+
+- `available`: la pagina de panales o URL canonica respondio correctamente en la verificacion HTTP del 2026-08-24.
+- `unavailable`: DNS o HTTP indica que la pagina configurada ya no esta operativa.
+- `needs_review`: el dominio responde, pero la ruta o el scraper necesitan revision antes de incluirlos en ETL automatico.
+
+Fuentes populares de Buenos Aires agregadas como candidatas: Dia Online, Farmacity, Disco, Vea, Panalera Baby Bear y Tienda Juma. Estas fuentes aparecen en `/source-stores?popular_buenos_aires=true`, pero quedan con `scraper_status=candidate` hasta implementar spiders especificos.
 
 A continuación listamos los sitios seleccionados:
 

@@ -7,7 +7,8 @@ from fastapi import FastAPI, Query, Response
 from fastapi.responses import HTMLResponse
 
 from dpaas_core import analytics
-from dpaas_core.schemas import BrandSizeSummary, DiaperObservation, PriceSeriesPoint
+from dpaas_core.schemas import BrandSizeSummary, DiaperObservation, PriceSeriesPoint, SourceStore
+from dpaas_core.source_catalog import list_source_stores
 from dpaas_core.storage import DuckDBStore
 
 from .settings import DUCKDB_PATH
@@ -126,6 +127,21 @@ def data_quality():
         store.close()
 
 
+@app.get("/source-stores", response_model=List[SourceStore])
+def source_stores(
+    availability: Optional[str] = Query(None, description="Comma-separated statuses: available, unavailable, needs_review"),
+    region: Optional[str] = Query(None, description="Region tag such as caba, gba, amba, rosario"),
+    scraper_status: Optional[str] = Query(None, description="Comma-separated scraper statuses: implemented, candidate, needs_review"),
+    popular_buenos_aires: Optional[bool] = Query(None),
+):
+    return list_source_stores(
+        availability=availability,
+        region=region,
+        scraper_status=scraper_status,
+        popular_buenos_aires=popular_buenos_aires,
+    )
+
+
 @app.get("/exports/observations.csv")
 def export_observations(history: bool = Query(True)):
     store = get_store()
@@ -148,12 +164,21 @@ def dashboard():
         summary = analytics.brand_size_summary(store)[:25]
     finally:
         store.close()
+    sources = list_source_stores()
+    active_sources = [source for source in sources if source["status"] == "available"]
+    follow_up_sources = [source for source in sources if source["status"] != "available" or source["scraper_status"] != "implemented"][:20]
 
     rows = "\n".join(
         f"<tr><td>{escape(str(item.get('brand') or ''))}</td><td>{escape(str(item.get('size') or ''))}</td>"
         f"<td>{item.get('product_count')}</td><td>{item.get('min_unit_price') or ''}</td>"
         f"<td>{item.get('avg_unit_price') or ''}</td><td>{item.get('max_unit_price') or ''}</td></tr>"
         for item in summary
+    )
+    source_rows = "\n".join(
+        f"<tr><td>{escape(source['name'])}</td><td>{escape(source['status'])}</td>"
+        f"<td>{escape(source['scraper_status'])}</td><td>{escape(', '.join(source.get('regions') or []))}</td>"
+        f"<td><a href=\"{escape(source.get('canonical_url') or source['diaper_url'])}\">open</a></td></tr>"
+        for source in follow_up_sources
     )
     return f"""
     <!doctype html>
@@ -195,12 +220,20 @@ def dashboard():
           <div class="metric"><strong>{quality.get('observations')}</strong><span>Observations</span></div>
           <div class="metric"><strong>{quality.get('rejected_observations')}</strong><span>Rejected</span></div>
           <div class="metric"><strong>{quality.get('pipeline_runs')}</strong><span>Pipeline runs</span></div>
+          <div class="metric"><strong>{len(active_sources)}</strong><span>Available sources</span></div>
         </section>
         <section>
           <h2>Brand Size Summary</h2>
           <table>
             <thead><tr><th>Brand</th><th>Size</th><th>Products</th><th>Min unit</th><th>Avg unit</th><th>Max unit</th></tr></thead>
             <tbody>{rows}</tbody>
+          </table>
+        </section>
+        <section>
+          <h2>Source Follow Up</h2>
+          <table>
+            <thead><tr><th>Store</th><th>Status</th><th>Scraper</th><th>Regions</th><th>URL</th></tr></thead>
+            <tbody>{source_rows}</tbody>
           </table>
         </section>
       </main>
