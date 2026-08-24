@@ -5,6 +5,7 @@ import json
 import os
 from typing import Iterable, List
 
+from dpaas_core.source_catalog import implemented_active_spiders
 from dpaas_core.storage import DuckDBStore
 
 
@@ -14,7 +15,8 @@ DEFAULT_EXCLUDED_SPIDERS = {"meli"}
 def _parse_spiders(value: str, available: Iterable[str]) -> List[str]:
     available = sorted(available)
     if value == "all":
-        return [name for name in available if name not in DEFAULT_EXCLUDED_SPIDERS]
+        active = implemented_active_spiders(available)
+        return [name for name in active if name not in DEFAULT_EXCLUDED_SPIDERS]
     requested = [name.strip() for name in value.split(",") if name.strip()]
     unknown = sorted(set(requested) - set(available))
     if unknown:

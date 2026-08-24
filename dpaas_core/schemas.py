@@ -53,3 +53,20 @@ class BrandSizeSummary(BaseModel):
     avg_unit_price: Optional[float] = None
     max_unit_price: Optional[float] = None
     avg_price: Optional[float] = None
+
+
+class SourceStore(BaseModel):
+    id: str
+    name: str
+    diaper_url: str
+    status: str
+    scraper_status: str
+    homepage_url: Optional[str] = None
+    canonical_url: Optional[str] = None
+    spider: Optional[str] = None
+    ecommerce: Optional[str] = None
+    http_status: Optional[int] = None
+    checked_at: str
+    regions: List[str] = Field(default_factory=list)
+    popular_buenos_aires: bool = False
+    notes: Optional[str] = None
